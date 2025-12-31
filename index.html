@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fake Roblox Compact</title>
+<title>fake-roblox-compact</title>
 
 <style>
 *{box-sizing:border-box}
@@ -21,14 +21,6 @@ body{
   100%{background-position:0% 50%}
 }
 .hidden{display:none}
-button{
-  padding:12px;
-  background:#2bb1ff;
-  border:none;
-  border-radius:8px;
-  font-weight:bold;
-  margin:5px 0;
-}
 header{
   background:#121212;
   padding:12px;
@@ -36,153 +28,335 @@ header{
   justify-content:space-between;
 }
 .tabs{display:flex}
-.tabs button{flex:1;border-radius:0}
+.tabs button{
+  flex:1;
+  padding:12px;
+  border:none;
+  background:#2bb1ff;
+  font-weight:bold;
+}
 .card{
   background:rgba(42,42,42,0.95);
   margin:10px;
   padding:15px;
   border-radius:10px;
 }
-.center{text-align:center}
+button{
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#2bb1ff;
+  font-weight:bold;
+  margin:4px;
+}
 canvas{
   background:#000;
   display:block;
   margin:10px auto;
   border-radius:10px;
 }
+.weapon-bar button{background:#444;color:#fff}
+.weapon-bar button.active{background:#2bb1ff;color:#000}
+.center{text-align:center}
+
+/* FAKE AD */
+#fakeAd{
+  position:fixed;
+  inset:0;
+  margin:auto;
+  max-width:320px;
+  height:fit-content;
+  z-index:999;
+  box-shadow:0 0 40px rgba(0,0,0,.8);
+  animation:pop .3s ease;
+}
+@keyframes pop{
+  from{transform:scale(.8);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+/* UNDERTALE NOTI */
+#noti{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#111;
+  border:2px solid #ff3b3b;
+  padding:10px 16px;
+  border-radius:6px;
+  font-weight:bold;
+  z-index:1000;
+  animation:fadeUp 2.5s ease forwards;
+}
+@keyframes fadeUp{
+  0%{opacity:0;transform:translate(-50%,10px)}
+  10%{opacity:1}
+  90%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-10px)}
+}
+
+/* OBAMA PYRAMID */
+.pyramid-wrap{
+  perspective:600px;
+  margin:20px auto;
+  width:120px;height:120px;
+}
+.pyramid{
+  position:relative;
+  width:100%;height:100%;
+  transform-style:preserve-3d;
+  animation:spin 4s linear infinite;
+}
+.face{
+  position:absolute;
+  width:0;height:0;
+  border-left:60px solid transparent;
+  border-right:60px solid transparent;
+  border-bottom:100px solid rgba(255,215,0,.85);
+  display:flex;justify-content:center;
+}
+.face span{position:absolute;top:45px;font-size:28px}
+.face:nth-child(1){transform:rotateY(0deg) translateZ(35px)}
+.face:nth-child(2){transform:rotateY(120deg) translateZ(35px)}
+.face:nth-child(3){transform:rotateY(240deg) translateZ(35px)}
+@keyframes spin{to{transform:rotateY(360deg)}}
+
+/* 92% CURSE */
+#curse{
+  position:fixed;
+  inset:0;
+  background:black;
+  z-index:2000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+#curse img{
+  max-width:100%;
+  max-height:100%;
+  animation:shake .08s infinite;
+}
+@keyframes shake{
+  0%{transform:translate(0,0)}
+  25%{transform:translate(6px,-6px)}
+  50%{transform:translate(-6px,6px)}
+  75%{transform:translate(6px,6px)}
+  100%{transform:translate(-6px,-6px)}
+}
 </style>
 </head>
 
 <body>
 
-<div id="login" class="center" style="padding:30px">
-  <h2>Login</h2>
-  <input id="user" placeholder="Username">
-  <button onclick="login()">Login</button>
-</div>
-
-<div id="app" class="hidden">
 <header>
-  <strong id="welcome"></strong>
+  <strong>fake-roblox-compact</strong>
   💰 <span id="coins">0</span>
 </header>
 
 <div class="tabs">
-  <button onclick="show('clicker')">🖱 Clicker</button>
-  <button onclick="show('snake')">🐍 Snake</button>
-  <button onclick="show('arena')">⚔️ Arena</button>
-  <button onclick="show('range')">🔫 Range</button>
+  <button onclick="showTab('clicker')">🖱 Clicker</button>
+  <button onclick="showTab('arena')">⚔️ Arena</button>
+  <button onclick="showTab('range')">🧪 Range</button>
 </div>
 
-<!-- CLICKER -->
 <div id="clicker" class="card">
   <h3>AI Clicker</h3>
   <div class="center" id="clicks">0</div>
-  <button onclick="clickAI()">TAP AI</button>
+  <button onclick="clickAI()">🤖 TAP AI</button>
 </div>
 
-<!-- SNAKE -->
-<div id="snake" class="card hidden">
-  <h3>Snake</h3>
-  <canvas id="snakeGame" width="300" height="300"></canvas>
-</div>
-
-<!-- ARENA (SECOND ITERATION) -->
 <div id="arena" class="card hidden">
-  <h3>Arena Test</h3>
+  <h3>Arena</h3>
   <canvas id="arenaGame" width="320" height="320"></canvas>
-  <p class="center">Tap / Click enemies</p>
+  <div class="center weapon-bar">
+    <button id="w_pistol" class="active" onclick="setWeapon('pistol')">Pistol</button>
+    <button id="w_shotgun" onclick="setWeapon('shotgun')">Shotgun</button>
+    <button id="w_sniper" onclick="setWeapon('sniper')">Sniper</button>
+  </div>
+  <div class="center">
+    <button onclick="shoot()">🔫 SHOOT</button>
+  </div>
 </div>
 
-<!-- RANGE -->
 <div id="range" class="card hidden">
-  <h3>Test Range</h3>
-  <button onclick="fireGun()">Fire</button>
+  <h3>Training Bench</h3>
+  Magazine: <strong id="mag">0</strong>/7<br>
+  Chambered: <strong id="chamber">No</strong><br><br>
+  <button onclick="loadMag()">📦 Load</button>
+  <button onclick="rack()">🔄 Rack</button>
+  <button onclick="fire()">🔫 Fire</button>
 </div>
+
+<!-- FAKE AD -->
+<div id="fakeAd" class="card hidden center">
+  <div style="text-align:right;opacity:.5">✖ (broken)</div>
+  <h3 id="adTitle"></h3>
+  <p id="adText"></p>
+
+  <div id="obamaPyramid" class="hidden">
+    <div class="pyramid-wrap">
+      <div class="pyramid">
+        <div class="face"><span>🧔🏾‍♂️</span></div>
+        <div class="face"><span>🧔🏾‍♂️</span></div>
+        <div class="face"><span>🧔🏾‍♂️</span></div>
+      </div>
+    </div>
+    <p>ba-da-bee-ba-da-boop</p>
+  </div>
+
+  <button onclick="adAction()">CLAIM</button>
+</div>
+
+<div id="noti" class="hidden">❤️ DETERMINATION fills your soul</div>
+
+<!-- 92% JUMPSCARE -->
+<div id="curse" class="hidden">
+  <img src="vortrox92.png" alt="92 percent curse">
 </div>
 
 <script>
-/* SAVE */
-const KEY="FAKE_ROBLOX_COMPACT";
-let data=JSON.parse(localStorage.getItem(KEY)||"{}");
-data.coins??=0; data.clicks??=0;
+/* AUDIO */
+let audioCtx;
+function sfx(f=400,d=.08,t="square"){
+  if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=t;o.frequency.value=f;
+  g.gain.value=.25;
+  g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d);
+  o.connect(g);g.connect(audioCtx.destination);
+  o.start();o.stop(audioCtx.currentTime+d);
+}
 
-function save(){localStorage.setItem(KEY,JSON.stringify(data));}
-function login(){
-  data.user=user.value;
-  save();
-  start();
+/* SCAT PARODY */
+function playScat(){
+  const p=[659,659,523,659,784,659,523,440,523,659];
+  let t=audioCtx.currentTime;
+  p.forEach(n=>{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type="square";o.frequency.value=n;
+    g.gain.value=.18;
+    g.gain.exponentialRampToValueAtTime(.001,t+.18);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start(t);o.stop(t+.18);
+    t+=.18;
+  });
 }
-function start(){
-  if(!data.user)return;
-  login.classList.add("hidden");
-  app.classList.remove("hidden");
-  welcome.textContent="Hi, "+data.user;
-  update();
+
+/* DIMINISHED CURSE */
+function curseChord(){
+  const base=220;
+  [1,1.189,1.414,1.682].forEach(r=>{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type="sawtooth";o.frequency.value=base*r;
+    g.gain.value=.35;
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+2);
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start();o.stop(audioCtx.currentTime+2);
+  });
 }
+function triggerCurse(){
+  curse.classList.remove("hidden");
+  curseChord();
+  setTimeout(()=>curse.classList.add("hidden"),2000);
+}
+
+/* SAVE */
+let data=JSON.parse(localStorage.getItem("FAKE_ROBLOX_COMPACT")||"{}");
+data.coins??=0;data.clicks??=0;
+function save(){localStorage.setItem("FAKE_ROBLOX_COMPACT",JSON.stringify(data))}
 function update(){
   coins.textContent=data.coins;
   clicks.textContent=data.clicks;
+  mag.textContent=magCount;
+  chamber.textContent=chambered?"Yes":"No";
 }
+update();
 
 /* TABS */
-function show(id){
-  ["clicker","snake","arena","range"].forEach(x=>document.getElementById(x).classList.add("hidden"));
+function showTab(id){
+  ["clicker","arena","range"].forEach(t=>document.getElementById(t).classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
 }
+function clickAI(){data.clicks++;data.coins++;sfx(600,.05);save();update()}
 
-/* CLICKER */
-function clickAI(){
-  data.clicks++; data.coins++;
-  save(); update();
+/* ARENA */
+const ac=arenaGame.getContext("2d");
+let bullets=[],enemies=[],weapon="pistol";
+function spawn(){enemies.push({x:Math.random()*280+20,y:Math.random()*280+20})}
+for(let i=0;i<6;i++)spawn();
+function setWeapon(w){
+  weapon=w;sfx(300);
+  ["pistol","shotgun","sniper"].forEach(x=>document.getElementById("w_"+x).classList.remove("active"));
+  document.getElementById("w_"+w).classList.add("active");
 }
-
-/* SNAKE (simple placeholder loop) */
-const sc=document.getElementById("snakeGame").getContext("2d");
-setInterval(()=>{sc.clearRect(0,0,300,300);},300);
-
-/* ⚔️ ARENA GAME (SECOND ITERATION CORE) */
-const ac=document.getElementById("arenaGame").getContext("2d");
-let enemies=[];
-function spawnEnemy(){
-  enemies.push({
-    x:Math.random()*280+20,
-    y:Math.random()*280+20
-  });
+function shoot(){
+  if(weapon==="pistol")bullets.push({x:160,y:160,vy:-6});
+  if(weapon==="shotgun")for(let i=-3;i<=3;i++)bullets.push({x:160,y:160,vx:i*.8,vy:-5});
+  if(weapon==="sniper")bullets.push({x:160,y:160,vy:-9});
+  sfx(700);
 }
-for(let i=0;i<5;i++)spawnEnemy();
-
-arenaGame.onclick=e=>{
-  const r=arenaGame.getBoundingClientRect();
-  const mx=e.clientX-r.left;
-  const my=e.clientY-r.top;
-  enemies=enemies.filter(en=>{
-    const hit=Math.hypot(en.x-mx,en.y-my)<20;
-    if(hit){data.coins++; save(); update();}
-    return !hit;
-  });
-  if(enemies.length<5)spawnEnemy();
-};
-
 setInterval(()=>{
   ac.clearRect(0,0,320,320);
-  ac.fillStyle="red";
-  ac.beginPath();
-  ac.arc(160,160,10,0,Math.PI*2);
-  ac.fill();
-  ac.fillStyle="gray";
-  enemies.forEach(e=>{
-    ac.fillRect(e.x-10,e.y-10,20,20);
+  bullets.forEach(b=>{b.x+=b.vx||0;b.y+=b.vy});
+  bullets=bullets.filter(b=>b.y>-10);
+  bullets.forEach(b=>{
+    enemies=enemies.filter(e=>{
+      if(Math.hypot(e.x-b.x,e.y-b.y)<14){
+        data.coins++;sfx(1000);save();update();return false;
+      }return true;
+    });
   });
+  while(enemies.length<6)spawn();
+  ac.fillStyle="gray";
+  enemies.forEach(e=>ac.fillRect(e.x-10,e.y-10,20,20));
 },60);
 
 /* RANGE */
-function fireGun(){
-  data.coins++;
-  save(); update();
+let magCount=0,chambered=false;
+function loadMag(){magCount=7;chambered=false;sfx(300);update()}
+function rack(){if(magCount>0){chambered=true;sfx(500)}else sfx(150)}
+function fire(){
+  if(!chambered){sfx(120);return;}
+  chambered=false;magCount--;data.coins++;sfx(800);save();update();
 }
 
-start();
+/* ADS */
+const ads=[
+  {t:"FREE ROBUX",d:"trust me bro",c:.35,a:()=>alert("❌")},
+  {t:"AIM BOOST",d:"+300% placebo",c:.25,a:()=>alert("you feel faster")},
+  {t:"DETERMINATION",d:"something inside you awakens",c:.15,a:()=>{
+    noti.classList.remove("hidden");
+    sfx(900,.2,"triangle");
+    setTimeout(()=>noti.classList.add("hidden"),2500);
+    data.coins+=3;save();update();
+  }},
+  {t:"OBAMA PYRAMID",d:"spinning wisdom",c:.1,a:()=>{
+    obamaPyramid.classList.remove("hidden");
+    playScat();
+    setTimeout(()=>obamaPyramid.classList.add("hidden"),6000);
+  }}
+];
+function tryAd(){
+  if(!fakeAd.classList.contains("hidden"))return;
+  if(Math.random()>.6)return;
+  for(const ad of ads){
+    if(Math.random()<ad.c){
+      adTitle.textContent=ad.t;
+      adText.textContent=ad.d;
+      window.adAction=()=>{
+        fakeAd.classList.add("hidden");
+        sfx(200);ad.a();
+      };
+      fakeAd.classList.remove("hidden");
+      return;
+    }
+  }
+}
+setInterval(tryAd,20000);
+
+/* RANDOM 92% CURSE */
+setInterval(()=>{if(Math.random()<.03)triggerCurse()},15000);
 </script>
 
 </body>
