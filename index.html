@@ -3,15 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Creator Dashboard</title>
+<title>Fake Roblox Compact</title>
 
 <style>
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:#171717;
+  font-family:Arial,sans-serif;
   color:#fff;
+  background:linear-gradient(-45deg,#0f0f0f,#171717,#1e1e1e,#121212);
+  background-size:400% 400%;
+  animation:bgMove 20s ease infinite;
+}
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
 }
 .hidden{display:none}
 button{
@@ -19,256 +26,160 @@ button{
   background:#2bb1ff;
   border:none;
   border-radius:8px;
-  color:#000;
   font-weight:bold;
   margin:5px 0;
 }
-input{padding:12px;width:100%;border-radius:6px;border:none}
 header{
   background:#121212;
   padding:12px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
 }
 .tabs{display:flex}
 .tabs button{flex:1;border-radius:0}
 .card{
-  background:#2a2a2a;
+  background:rgba(42,42,42,0.95);
   margin:10px;
   padding:15px;
   border-radius:10px;
 }
 .center{text-align:center}
-.big{font-size:32px}
 canvas{
   background:#000;
   display:block;
   margin:10px auto;
   border-radius:10px;
 }
-.controls{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:5px;
-  max-width:200px;
-  margin:0 auto;
-}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
 <div id="login" class="center" style="padding:30px">
   <h2>Login</h2>
   <input id="user" placeholder="Username">
-  <button id="loginBtn">Login</button>
+  <button onclick="login()">Login</button>
 </div>
 
-<!-- APP -->
 <div id="app" class="hidden">
-  <header>
-    <strong id="welcome"></strong>
-    <span>💰 <span id="coins">0</span></span>
-  </header>
+<header>
+  <strong id="welcome"></strong>
+  💰 <span id="coins">0</span>
+</header>
 
-  <div class="tabs">
-    <button onclick="showTab('clickerTab')">🖱 Clicker</button>
-    <button onclick="showTab('snakeTab')">🐍 Snake</button>
-    <button onclick="showTab('gunTab')">🔫 Range</button>
-    <button onclick="showTab('avatarTab')">🧍 Avatar</button>
-  </div>
+<div class="tabs">
+  <button onclick="show('clicker')">🖱 Clicker</button>
+  <button onclick="show('snake')">🐍 Snake</button>
+  <button onclick="show('arena')">⚔️ Arena</button>
+  <button onclick="show('range')">🔫 Range</button>
+</div>
 
-  <!-- CLICKER -->
-  <div id="clickerTab" class="card">
-    <h3>AI Clicker</h3>
-    <p>Tap to farm fake AIs</p>
-    <div class="big center" id="clicks">0</div>
-    <button onclick="clickAI()">🤖 TAP AI</button>
-  </div>
+<!-- CLICKER -->
+<div id="clicker" class="card">
+  <h3>AI Clicker</h3>
+  <div class="center" id="clicks">0</div>
+  <button onclick="clickAI()">TAP AI</button>
+</div>
 
-  <!-- SNAKE -->
-  <div id="snakeTab" class="card hidden">
-    <h3>Snake vs Fake AIs</h3>
-    <p>Target: 🤖 <strong id="botName"></strong></p>
-    <canvas id="game" width="300" height="300"></canvas>
+<!-- SNAKE -->
+<div id="snake" class="card hidden">
+  <h3>Snake</h3>
+  <canvas id="snakeGame" width="300" height="300"></canvas>
+</div>
 
-    <div class="controls">
-      <div></div><button onclick="setDir(0,-1)">⬆️</button><div></div>
-      <button onclick="setDir(-1,0)">⬅️</button>
-      <button onclick="setDir(1,0)">➡️</button>
-      <div></div><button onclick="setDir(0,1)">⬇️</button><div></div>
-    </div>
-  </div>
+<!-- ARENA (SECOND ITERATION) -->
+<div id="arena" class="card hidden">
+  <h3>Arena Test</h3>
+  <canvas id="arenaGame" width="320" height="320"></canvas>
+  <p class="center">Tap / Click enemies</p>
+</div>
 
-  <!-- GUN GAME (FICTIONAL) -->
-  <div id="gunTab" class="card hidden">
-    <h3>Test Range (Game)</h3>
-    <p>
-      Magazine: <strong id="magCount">0</strong> / 7<br>
-      Chambered: <strong id="chamber">No</strong>
-    </p>
-    <button onclick="loadMag()">📦 Load Mag</button>
-    <button onclick="rackSlide()">🔄 Rack</button>
-    <button onclick="fireGun()">🔫 Fire</button>
-  </div>
-
-  <!-- AVATAR -->
-  <div id="avatarTab" class="card hidden">
-    <h3>Avatar</h3>
-    <p>Equipped: <strong id="equipped">None</strong></p>
-    <button onclick="save()">💾 Save</button>
-  </div>
+<!-- RANGE -->
+<div id="range" class="card hidden">
+  <h3>Test Range</h3>
+  <button onclick="fireGun()">Fire</button>
+</div>
 </div>
 
 <script>
-/* 🔊 SOUND ENGINE */
-let audioCtx;
-function sound(freq,d=0.1,type="sine"){
-  if(!audioCtx){
-    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  }
-  const o=audioCtx.createOscillator();
-  const g=audioCtx.createGain();
-  o.type=type;
-  o.frequency.value=freq;
-  g.gain.value=0.2;
-  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);
-  o.connect(g); g.connect(audioCtx.destination);
-  o.start(); o.stop(audioCtx.currentTime+d);
+/* SAVE */
+const KEY="FAKE_ROBLOX_COMPACT";
+let data=JSON.parse(localStorage.getItem(KEY)||"{}");
+data.coins??=0; data.clicks??=0;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(data));}
+function login(){
+  data.user=user.value;
+  save();
+  start();
 }
-
-/* 💾 SAVE DATA */
-const KEY="SAFE_DASH_ALL";
-const bots=["ChatBot-X","NeoAI","SynthMind","FakeGPT","AutoGPT-Lite"];
-
-let data;
-try{data=JSON.parse(localStorage.getItem(KEY))||{}}catch{data={}}
-data.user??=null;
-data.coins??=0;
-data.clicks??=0;
-data.equipped??=null;
-
-function save(){
-  localStorage.setItem(KEY,JSON.stringify(data));
-  sound(400,0.15);
-}
-
-/* LOGIN */
-loginBtn.onclick=()=>{
-  if(!user.value.trim())return;
-  data.user=user.value.trim();
-  save(); start();
-};
-
 function start(){
   if(!data.user)return;
   login.classList.add("hidden");
   app.classList.remove("hidden");
   welcome.textContent="Hi, "+data.user;
-  updateUI();
-  initSnake();
-  updateGunUI();
+  update();
 }
-
-function updateUI(){
+function update(){
   coins.textContent=data.coins;
   clicks.textContent=data.clicks;
-  equipped.textContent=data.equipped||"None";
 }
 
 /* TABS */
-function showTab(id){
-  clickerTab.classList.add("hidden");
-  snakeTab.classList.add("hidden");
-  gunTab.classList.add("hidden");
-  avatarTab.classList.add("hidden");
+function show(id){
+  ["clicker","snake","arena","range"].forEach(x=>document.getElementById(x).classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
 }
 
 /* CLICKER */
 function clickAI(){
   data.clicks++; data.coins++;
-  sound(600,0.05,"square");
-  save(); updateUI();
+  save(); update();
 }
 
-/* SNAKE */
-const c=document.getElementById("game"),ctx=c.getContext("2d");
-let snake,dir,food;
+/* SNAKE (simple placeholder loop) */
+const sc=document.getElementById("snakeGame").getContext("2d");
+setInterval(()=>{sc.clearRect(0,0,300,300);},300);
 
-function randBot(){
-  botName.textContent=bots[Math.floor(Math.random()*bots.length)];
+/* ⚔️ ARENA GAME (SECOND ITERATION CORE) */
+const ac=document.getElementById("arenaGame").getContext("2d");
+let enemies=[];
+function spawnEnemy(){
+  enemies.push({
+    x:Math.random()*280+20,
+    y:Math.random()*280+20
+  });
 }
-function initSnake(){
-  snake=[{x:5,y:5}]; dir={x:1,y:0};
-  food={x:10,y:10}; randBot();
-}
-function setDir(x,y){dir={x,y}}
+for(let i=0;i<5;i++)spawnEnemy();
 
-document.addEventListener("keydown",e=>{
-  if(e.key==="ArrowUp")setDir(0,-1);
-  if(e.key==="ArrowDown")setDir(0,1);
-  if(e.key==="ArrowLeft")setDir(-1,0);
-  if(e.key==="ArrowRight")setDir(1,0);
-});
+arenaGame.onclick=e=>{
+  const r=arenaGame.getBoundingClientRect();
+  const mx=e.clientX-r.left;
+  const my=e.clientY-r.top;
+  enemies=enemies.filter(en=>{
+    const hit=Math.hypot(en.x-mx,en.y-my)<20;
+    if(hit){data.coins++; save(); update();}
+    return !hit;
+  });
+  if(enemies.length<5)spawnEnemy();
+};
 
-function loop(){
-  if(snakeTab.classList.contains("hidden"))return;
-  const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
-  if(h.x<0||h.y<0||h.x>=15||h.y>=15||
-     snake.some(s=>s.x===h.x&&s.y===h.y)){
-    sound(120,0.4,"sawtooth"); initSnake(); return;
-  }
-  snake.unshift(h);
-  if(h.x===food.x&&h.y===food.y){
-    data.coins+=2;
-    sound(900,0.12,"triangle");
-    save(); updateUI();
-    food={x:Math.floor(Math.random()*15),y:Math.floor(Math.random()*15)};
-    randBot();
-  } else snake.pop();
+setInterval(()=>{
+  ac.clearRect(0,0,320,320);
+  ac.fillStyle="red";
+  ac.beginPath();
+  ac.arc(160,160,10,0,Math.PI*2);
+  ac.fill();
+  ac.fillStyle="gray";
+  enemies.forEach(e=>{
+    ac.fillRect(e.x-10,e.y-10,20,20);
+  });
+},60);
 
-  ctx.clearRect(0,0,300,300);
-  ctx.fillStyle="lime";
-  snake.forEach(s=>ctx.fillRect(s.x*20,s.y*20,18,18));
-  ctx.fillStyle="red";
-  ctx.fillRect(food.x*20,food.y*20,18,18);
-}
-setInterval(loop,200);
-
-/* 🔫 GUN GAME (FICTIONAL) */
-let mag=0,chambered=false;
-const MAG=7;
-
-function updateGunUI(){
-  magCount.textContent=mag;
-  chamber.textContent=chambered?"Yes":"No";
-}
-
-function loadMag(){
-  mag=MAG; chambered=false;
-  sound(300,0.15,"square");
-  updateGunUI();
-}
-
-function rackSlide(){
-  if(mag>0){
-    chambered=true;
-    sound(500,0.1,"triangle");
-  }else sound(150,0.2,"sawtooth");
-  updateGunUI();
-}
-
+/* RANGE */
 function fireGun(){
-  if(!chambered){
-    sound(120,0.2); return;
-  }
-  chambered=false; mag--;
   data.coins++;
-  sound(800,0.08,"square");
-  save(); updateUI(); updateGunUI();
+  save(); update();
 }
 
 start();
