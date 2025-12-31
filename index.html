@@ -357,6 +357,55 @@ setInterval(tryAd,20000);
 
 /* RANDOM 92% CURSE */
 setInterval(()=>{if(Math.random()<.03)triggerCurse()},15000);
+/* 💀 VORTROX 92% DEATH CURSE – FINAL FIX */
+
+/* create image if it doesn't exist */
+(function(){
+  if(document.getElementById("vortrox")) return;
+  const img=document.createElement("img");
+  img.id="vortrox";
+  img.src="vortrox92.png";
+  img.style.position="fixed";
+  img.style.inset="0";
+  img.style.width="100%";
+  img.style.height="100%";
+  img.style.objectFit="cover";
+  img.style.zIndex="99999";
+  img.style.display="none";
+  document.body.appendChild(img);
+})();
+
+function vortroxChord(){
+  if(!window.audioCtx){
+    window.audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  }
+  const ctx=window.audioCtx;
+  [220,277.18,329.63].forEach(f=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type="sawtooth";
+    o.frequency.value=f;
+    g.gain.value=0.25;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+2);
+    o.stop(ctx.currentTime+2);
+  });
+}
+
+function showVortrox(){
+  const img=document.getElementById("vortrox");
+  if(!img) return;
+  img.style.display="block";
+  vortroxChord();
+  setTimeout(()=>{img.style.display="none"},2000);
+}
+
+/* random trigger, repeats forever */
+setInterval(()=>{
+  if(Math.random()<0.12){ // 12% chance
+    showVortrox();
+  }
+},18000);
 </script>
 
 </body>
