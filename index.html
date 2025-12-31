@@ -216,6 +216,7 @@ canvas{
 </div>
 
 <script>
+try {
 /* AUDIO */
 let audioCtx;
 function sfx(f=400,d=.08,t="square"){
@@ -406,6 +407,10 @@ setInterval(()=>{
     showVortrox();
   }
 },18000);
+} catch (e) {
+  alert("JS error happened — check console");
+  console.error(e);
+}
 </script>
 
 </body>
