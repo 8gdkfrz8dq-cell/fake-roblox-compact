@@ -74,76 +74,6 @@ canvas{
   from{transform:scale(.8);opacity:0}
   to{transform:scale(1);opacity:1}
 }
-
-/* UNDERTALE NOTI */
-#noti{
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#111;
-  border:2px solid #ff3b3b;
-  padding:10px 16px;
-  border-radius:6px;
-  font-weight:bold;
-  z-index:1000;
-  animation:fadeUp 2.5s ease forwards;
-}
-@keyframes fadeUp{
-  0%{opacity:0;transform:translate(-50%,10px)}
-  10%{opacity:1}
-  90%{opacity:1}
-  100%{opacity:0;transform:translate(-50%,-10px)}
-}
-
-/* OBAMA PYRAMID */
-.pyramid-wrap{
-  perspective:600px;
-  margin:20px auto;
-  width:120px;height:120px;
-}
-.pyramid{
-  position:relative;
-  width:100%;height:100%;
-  transform-style:preserve-3d;
-  animation:spin 4s linear infinite;
-}
-.face{
-  position:absolute;
-  width:0;height:0;
-  border-left:60px solid transparent;
-  border-right:60px solid transparent;
-  border-bottom:100px solid rgba(255,215,0,.85);
-  display:flex;justify-content:center;
-}
-.face span{position:absolute;top:45px;font-size:28px}
-.face:nth-child(1){transform:rotateY(0deg) translateZ(35px)}
-.face:nth-child(2){transform:rotateY(120deg) translateZ(35px)}
-.face:nth-child(3){transform:rotateY(240deg) translateZ(35px)}
-@keyframes spin{to{transform:rotateY(360deg)}}
-
-/* 92% CURSE */
-#curse{
-  position:fixed;
-  inset:0;
-  background:black;
-  z-index:2000;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-#curse img{
-  max-width:100%;
-  max-height:100%;
-  animation:shake .08s infinite;
-}
-@keyframes shake{
-  0%{transform:translate(0,0)}
-  25%{transform:translate(6px,-6px)}
-  50%{transform:translate(-6px,6px)}
-  75%{transform:translate(6px,6px)}
-  100%{transform:translate(-6px,-6px)}
-}
 </style>
 </head>
 
@@ -156,29 +86,47 @@ canvas{
 
 <div class="tabs">
   <button onclick="showTab('clicker')">🖱 Clicker</button>
+  <button onclick="showTab('snake')">🐍 Snake</button>
   <button onclick="showTab('arena')">⚔️ Arena</button>
   <button onclick="showTab('range')">🧪 Range</button>
 </div>
 
+<!-- CLICKER -->
 <div id="clicker" class="card">
   <h3>AI Clicker</h3>
   <div class="center" id="clicks">0</div>
   <button onclick="clickAI()">🤖 TAP AI</button>
 </div>
 
+<!-- SNAKE -->
+<div id="snake" class="card hidden">
+  <h3>Snake vs Fake AIs</h3>
+  <canvas id="snakeGame" width="300" height="300"></canvas>
+  <div class="center">
+    <button onclick="setDir(0,-1)">⬆️</button><br>
+    <button onclick="setDir(-1,0)">⬅️</button>
+    <button onclick="setDir(1,0)">➡️</button><br>
+    <button onclick="setDir(0,1)">⬇️</button>
+  </div>
+</div>
+
+<!-- ARENA -->
 <div id="arena" class="card hidden">
   <h3>Arena</h3>
   <canvas id="arenaGame" width="320" height="320"></canvas>
+
   <div class="center weapon-bar">
     <button id="w_pistol" class="active" onclick="setWeapon('pistol')">Pistol</button>
     <button id="w_shotgun" onclick="setWeapon('shotgun')">Shotgun</button>
     <button id="w_sniper" onclick="setWeapon('sniper')">Sniper</button>
   </div>
+
   <div class="center">
     <button onclick="shoot()">🔫 SHOOT</button>
   </div>
 </div>
 
+<!-- RANGE -->
 <div id="range" class="card hidden">
   <h3>Training Bench</h3>
   Magazine: <strong id="mag">0</strong>/7<br>
@@ -193,79 +141,31 @@ canvas{
   <div style="text-align:right;opacity:.5">✖ (broken)</div>
   <h3 id="adTitle"></h3>
   <p id="adText"></p>
-
-  <div id="obamaPyramid" class="hidden">
-    <div class="pyramid-wrap">
-      <div class="pyramid">
-        <div class="face"><span>🧔🏾‍♂️</span></div>
-        <div class="face"><span>🧔🏾‍♂️</span></div>
-        <div class="face"><span>🧔🏾‍♂️</span></div>
-      </div>
-    </div>
-    <p>ba-da-bee-ba-da-boop</p>
-  </div>
-
   <button onclick="adAction()">CLAIM</button>
 </div>
 
-<div id="noti" class="hidden">❤️ DETERMINATION fills your soul</div>
-
-<!-- 92% JUMPSCARE -->
-<div id="curse" class="hidden">
-  <img src="vortrox92.png" alt="92 percent curse">
-</div>
+<p style="opacity:.5;font-size:12px;text-align:center">
+Fictional parody game. No real weapons, no real ads.
+</p>
 
 <script>
-try {
-/* AUDIO */
+/* 🔊 SFX */
 let audioCtx;
-function sfx(f=400,d=.08,t="square"){
+function sfx(f=400,d=0.08,t="square"){
   if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type=t;o.frequency.value=f;
-  g.gain.value=.25;
-  g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d);
+  g.gain.value=0.25;
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+d);
   o.connect(g);g.connect(audioCtx.destination);
   o.start();o.stop(audioCtx.currentTime+d);
 }
 
-/* SCAT PARODY */
-function playScat(){
-  const p=[659,659,523,659,784,659,523,440,523,659];
-  let t=audioCtx.currentTime;
-  p.forEach(n=>{
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type="square";o.frequency.value=n;
-    g.gain.value=.18;
-    g.gain.exponentialRampToValueAtTime(.001,t+.18);
-    o.connect(g);g.connect(audioCtx.destination);
-    o.start(t);o.stop(t+.18);
-    t+=.18;
-  });
-}
-
-/* DIMINISHED CURSE */
-function curseChord(){
-  const base=220;
-  [1,1.189,1.414,1.682].forEach(r=>{
-    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
-    o.type="sawtooth";o.frequency.value=base*r;
-    g.gain.value=.35;
-    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+2);
-    o.connect(g);g.connect(audioCtx.destination);
-    o.start();o.stop(audioCtx.currentTime+2);
-  });
-}
-function triggerCurse(){
-  curse.classList.remove("hidden");
-  curseChord();
-  setTimeout(()=>curse.classList.add("hidden"),2000);
-}
-
 /* SAVE */
-let data=JSON.parse(localStorage.getItem("FAKE_ROBLOX_COMPACT")||"{}");
+const KEY="FAKE_ROBLOX_COMPACT";
+let data=JSON.parse(localStorage.getItem(KEY)||"{}");
 data.coins??=0;data.clicks??=0;
-function save(){localStorage.setItem("FAKE_ROBLOX_COMPACT",JSON.stringify(data))}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function update(){
   coins.textContent=data.coins;
   clicks.textContent=data.clicks;
@@ -276,189 +176,117 @@ update();
 
 /* TABS */
 function showTab(id){
-  ["clicker","arena","range"].forEach(t=>document.getElementById(t).classList.add("hidden"));
+  ["clicker","snake","arena","range"].forEach(t=>{
+    document.getElementById(t).classList.add("hidden");
+  });
   document.getElementById(id).classList.remove("hidden");
 }
-function clickAI(){data.clicks++;data.coins++;sfx(600,.05);save();update()}
 
-/* ARENA */
-const ac=arenaGame.getContext("2d");
+/* CLICKER */
+function clickAI(){
+  data.clicks++;data.coins++;
+  sfx(600,0.05);
+  save();update();
+}
+
+/* 🐍 SNAKE */
+const sc=document.getElementById("snakeGame").getContext("2d");
+let snake=[{x:5,y:5}],dir={x:1,y:0},food={x:10,y:10};
+function setDir(x,y){dir={x,y}}
+
+setInterval(()=>{
+  if(document.getElementById("snake").classList.contains("hidden"))return;
+  const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
+  if(h.x<0||h.y<0||h.x>=15||h.y>=15||snake.some(s=>s.x===h.x&&s.y===h.y)){
+    snake=[{x:5,y:5}];dir={x:1,y:0};return;
+  }
+  snake.unshift(h);
+  if(h.x===food.x&&h.y===food.y){
+    data.coins+=2;sfx(900,0.1,"triangle");
+    food={x:Math.floor(Math.random()*15),y:Math.floor(Math.random()*15)};
+    save();update();
+  }else snake.pop();
+  sc.clearRect(0,0,300,300);
+  sc.fillStyle="lime";
+  snake.forEach(s=>sc.fillRect(s.x*20,s.y*20,18,18));
+  sc.fillStyle="red";
+  sc.fillRect(food.x*20,food.y*20,18,18);
+},200);
+
+/* ⚔️ ARENA */
+const arena=document.getElementById("arenaGame");
+const ac=arena.getContext("2d");
 let bullets=[],enemies=[],weapon="pistol";
-function spawn(){enemies.push({x:Math.random()*280+20,y:Math.random()*280+20})}
-for(let i=0;i<6;i++)spawn();
+
+function spawnEnemy(){enemies.push({x:Math.random()*280+20,y:Math.random()*280+20})}
+for(let i=0;i<6;i++)spawnEnemy();
+
 function setWeapon(w){
-  weapon=w;sfx(300);
+  weapon=w;sfx(300,0.08,"triangle");
   ["pistol","shotgun","sniper"].forEach(x=>document.getElementById("w_"+x).classList.remove("active"));
   document.getElementById("w_"+w).classList.add("active");
 }
+
 function shoot(){
-  if(weapon==="pistol")bullets.push({x:160,y:160,vy:-6});
-  if(weapon==="shotgun")for(let i=-3;i<=3;i++)bullets.push({x:160,y:160,vx:i*.8,vy:-5});
-  if(weapon==="sniper")bullets.push({x:160,y:160,vy:-9});
-  sfx(700);
+  if(weapon==="pistol"){bullets.push({x:160,y:160,vx:0,vy:-6});sfx(700)}
+  if(weapon==="shotgun"){
+    for(let i=-3;i<=3;i++)bullets.push({x:160,y:160,vx:i*0.8,vy:-5});
+    sfx(400,0.12,"sawtooth");
+  }
+  if(weapon==="sniper"){bullets.push({x:160,y:160,vx:0,vy:-9});sfx(900,0.1,"triangle")}
 }
+
 setInterval(()=>{
   ac.clearRect(0,0,320,320);
-  bullets.forEach(b=>{b.x+=b.vx||0;b.y+=b.vy});
+  bullets.forEach(b=>{b.x+=b.vx;b.y+=b.vy});
   bullets=bullets.filter(b=>b.y>-10);
   bullets.forEach(b=>{
     enemies=enemies.filter(e=>{
       if(Math.hypot(e.x-b.x,e.y-b.y)<14){
-        data.coins++;sfx(1000);save();update();return false;
-      }return true;
+        data.coins++;sfx(1000,0.08,"triangle");
+        save();update();return false;
+      }
+      return true;
     });
   });
-  while(enemies.length<6)spawn();
+  while(enemies.length<6)spawnEnemy();
   ac.fillStyle="gray";
   enemies.forEach(e=>ac.fillRect(e.x-10,e.y-10,20,20));
 },60);
 
-/* RANGE */
+/* 🧪 RANGE */
 let magCount=0,chambered=false;
 function loadMag(){magCount=7;chambered=false;sfx(300);update()}
 function rack(){if(magCount>0){chambered=true;sfx(500)}else sfx(150)}
 function fire(){
   if(!chambered){sfx(120);return;}
-  chambered=false;magCount--;data.coins++;sfx(800);save();update();
+  chambered=false;magCount--;data.coins++;
+  sfx(800);save();update();
 }
 
-/* ADS */
+/* 😂 FAKE ADS */
 const ads=[
-  {t:"FREE ROBUX",d:"trust me bro",c:.35,a:()=>alert("❌")},
-  {t:"AIM BOOST",d:"+300% placebo",c:.25,a:()=>alert("you feel faster")},
-  {t:"DETERMINATION",d:"something inside you awakens",c:.15,a:()=>{
-    noti.classList.remove("hidden");
-    sfx(900,.2,"triangle");
-    setTimeout(()=>noti.classList.add("hidden"),2500);
-    data.coins+=3;save();update();
-  }},
-  {t:"OBAMA PYRAMID",d:"spinning wisdom",c:.1,a:()=>{
-    obamaPyramid.classList.remove("hidden");
-    playScat();
-    setTimeout(()=>obamaPyramid.classList.add("hidden"),6000);
-  }}
+  {t:"FREE ROBUX",d:"trust me bro",a:()=>alert("❌ Robux not found")},
+  {t:"AIM BOOST",d:"+300% placebo",a:()=>alert("You feel faster")},
+  {t:"REMOVE ADS",d:"1,000,000 coins",a:()=>alert("Ads removed (jk)")},
+  {t:"FREE COINS",d:"real definitely",a:()=>{data.coins+=5;save();update()}}
 ];
-function tryAd(){
-  if(!fakeAd.classList.contains("hidden"))return;
-  if(Math.random()>.6)return;
-  for(const ad of ads){
-    if(Math.random()<ad.c){
-      adTitle.textContent=ad.t;
-      adText.textContent=ad.d;
-      window.adAction=()=>{
-        fakeAd.classList.add("hidden");
-        sfx(200);ad.a();
-      };
-      fakeAd.classList.remove("hidden");
-      return;
-    }
-  }
+function showAd(){
+  const a=ads[Math.floor(Math.random()*ads.length)];
+  adTitle.textContent=a.t;
+  adText.textContent=a.d;
+  window.adAction=()=>{
+    fakeAd.classList.add("hidden");
+    sfx(200);a.a();
+  };
+  fakeAd.classList.remove("hidden");
 }
-setInterval(tryAd,20000);
-
-/* RANDOM 92% CURSE */
-setInterval(()=>{if(Math.random()<.03)triggerCurse()},15000);
-/* 💀 VORTROX 92% DEATH CURSE – FINAL FIX */
-
-/* create image if it doesn't exist */
-(function(){
-  if(document.getElementById("vortrox")) return;
-  const img=document.createElement("img");
-  img.id="vortrox";
-  img.src="vortrox92.png";
-  img.style.position="fixed";
-  img.style.inset="0";
-  img.style.width="100%";
-  img.style.height="100%";
-  img.style.objectFit="cover";
-  img.style.zIndex="99999";
-  img.style.display="none";
-  document.body.appendChild(img);
-})();
-
-function vortroxChord(){
-  if(!window.audioCtx){
-    window.audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  }
-  const ctx=window.audioCtx;
-  [220,277.18,329.63].forEach(f=>{
-    const o=ctx.createOscillator(),g=ctx.createGain();
-    o.type="sawtooth";
-    o.frequency.value=f;
-    g.gain.value=0.25;
-    o.connect(g); g.connect(ctx.destination);
-    o.start();
-    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+2);
-    o.stop(ctx.currentTime+2);
-  });
-}
-
-function showVortrox(){
-  const img=document.getElementById("vortrox");
-  if(!img) return;
-  img.style.display="block";
-  vortroxChord();
-  setTimeout(()=>{img.style.display="none"},2000);
-}
-
-/* random trigger, repeats forever */
 setInterval(()=>{
-  if(Math.random()<0.12){ // 12% chance
-    showVortrox();
+  if(Math.random()<0.3 && fakeAd.classList.contains("hidden")){
+    showAd();
   }
-},18000);
-} catch (e) {
-  alert("JS error happened — check console");
-  console.error(e);
-}
-function playDiminished(){
-  if(!window.AudioContext) return;
-  const ctx = new AudioContext();
-  const freqs = [440, 523, 622]; // diminished-ish cluster
-  freqs.forEach(f=>{
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.frequency.value = f;
-    g.gain.value = 0.15;
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start();
-    o.stop(ctx.currentTime + 0.3);
-  });
-}
-
-function vortroxJump(){
-  const img = document.getElementById("vortrox");
-  if(!img) return;
-
-  img.style.display = "block";
-  playDiminished();
-
-  setTimeout(()=>{
-    img.style.display = "none";
-  }, 2000);
-}
-
-// random chance every 20–40 seconds
-setInterval(()=>{
-  if(Math.random() < 0.15){
-    vortroxJump();
-  }
-}, 25000);
+},25000);
 </script>
-<img 
-  id="vortrox"
-  src="vortrox92.png"
-  style="
-    position:fixed;
-    inset:0;
-    margin:auto;
-    max-width:90%;
-    max-height:90%;
-    z-index:9999;
-    display:none;
-  "
->
 
 </body>
 </html>
