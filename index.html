@@ -58,22 +58,6 @@ canvas{
 .weapon-bar button{background:#444;color:#fff}
 .weapon-bar button.active{background:#2bb1ff;color:#000}
 .center{text-align:center}
-
-/* FAKE AD */
-#fakeAd{
-  position:fixed;
-  inset:0;
-  margin:auto;
-  max-width:320px;
-  height:fit-content;
-  z-index:999;
-  box-shadow:0 0 40px rgba(0,0,0,.8);
-  animation:pop .3s ease;
-}
-@keyframes pop{
-  from{transform:scale(.8);opacity:0}
-  to{transform:scale(1);opacity:1}
-}
 </style>
 </head>
 
@@ -86,31 +70,16 @@ canvas{
 
 <div class="tabs">
   <button onclick="showTab('clicker')">🖱 Clicker</button>
-  <button onclick="showTab('snake')">🐍 Snake</button>
   <button onclick="showTab('arena')">⚔️ Arena</button>
   <button onclick="showTab('range')">🧪 Range</button>
 </div>
 
-<!-- CLICKER -->
 <div id="clicker" class="card">
   <h3>AI Clicker</h3>
   <div class="center" id="clicks">0</div>
   <button onclick="clickAI()">🤖 TAP AI</button>
 </div>
 
-<!-- SNAKE -->
-<div id="snake" class="card hidden">
-  <h3>Snake vs Fake AIs</h3>
-  <canvas id="snakeGame" width="300" height="300"></canvas>
-  <div class="center">
-    <button onclick="setDir(0,-1)">⬆️</button><br>
-    <button onclick="setDir(-1,0)">⬅️</button>
-    <button onclick="setDir(1,0)">➡️</button><br>
-    <button onclick="setDir(0,1)">⬇️</button>
-  </div>
-</div>
-
-<!-- ARENA -->
 <div id="arena" class="card hidden">
   <h3>Arena</h3>
   <canvas id="arenaGame" width="320" height="320"></canvas>
@@ -126,7 +95,6 @@ canvas{
   </div>
 </div>
 
-<!-- RANGE -->
 <div id="range" class="card hidden">
   <h3>Training Bench</h3>
   Magazine: <strong id="mag">0</strong>/7<br>
@@ -136,16 +104,8 @@ canvas{
   <button onclick="fire()">🔫 Fire</button>
 </div>
 
-<!-- FAKE AD -->
-<div id="fakeAd" class="card hidden center">
-  <div style="text-align:right;opacity:.5">✖ (broken)</div>
-  <h3 id="adTitle"></h3>
-  <p id="adText"></p>
-  <button onclick="adAction()">CLAIM</button>
-</div>
-
 <p style="opacity:.5;font-size:12px;text-align:center">
-Fictional parody game. No real weapons, no real ads.
+Fictional browser game. No real weapons.
 </p>
 
 <script>
@@ -165,6 +125,7 @@ function sfx(f=400,d=0.08,t="square"){
 const KEY="FAKE_ROBLOX_COMPACT";
 let data=JSON.parse(localStorage.getItem(KEY)||"{}");
 data.coins??=0;data.clicks??=0;
+
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function update(){
   coins.textContent=data.coins;
@@ -174,58 +135,31 @@ function update(){
 }
 update();
 
-/* TABS */
 function showTab(id){
-  ["clicker","snake","arena","range"].forEach(t=>{
-    document.getElementById(t).classList.add("hidden");
-  });
+  ["clicker","arena","range"].forEach(t=>document.getElementById(t).classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
 }
 
 /* CLICKER */
 function clickAI(){
-  data.clicks++;data.coins++;
-  sfx(600,0.05);
+  data.clicks++;data.coins++;sfx(600,0.05);
   save();update();
 }
 
-/* 🐍 SNAKE */
-const sc=document.getElementById("snakeGame").getContext("2d");
-let snake=[{x:5,y:5}],dir={x:1,y:0},food={x:10,y:10};
-function setDir(x,y){dir={x,y}}
-
-setInterval(()=>{
-  if(document.getElementById("snake").classList.contains("hidden"))return;
-  const h={x:snake[0].x+dir.x,y:snake[0].y+dir.y};
-  if(h.x<0||h.y<0||h.x>=15||h.y>=15||snake.some(s=>s.x===h.x&&s.y===h.y)){
-    snake=[{x:5,y:5}];dir={x:1,y:0};return;
-  }
-  snake.unshift(h);
-  if(h.x===food.x&&h.y===food.y){
-    data.coins+=2;sfx(900,0.1,"triangle");
-    food={x:Math.floor(Math.random()*15),y:Math.floor(Math.random()*15)};
-    save();update();
-  }else snake.pop();
-  sc.clearRect(0,0,300,300);
-  sc.fillStyle="lime";
-  snake.forEach(s=>sc.fillRect(s.x*20,s.y*20,18,18));
-  sc.fillStyle="red";
-  sc.fillRect(food.x*20,food.y*20,18,18);
-},200);
-
-/* ⚔️ ARENA */
+/* ARENA */
 const arena=document.getElementById("arenaGame");
 const ac=arena.getContext("2d");
+const player={x:160,y:160};
 let bullets=[],enemies=[],weapon="pistol";
-
-function spawnEnemy(){enemies.push({x:Math.random()*280+20,y:Math.random()*280+20})}
-for(let i=0;i<6;i++)spawnEnemy();
 
 function setWeapon(w){
   weapon=w;sfx(300,0.08,"triangle");
   ["pistol","shotgun","sniper"].forEach(x=>document.getElementById("w_"+x).classList.remove("active"));
   document.getElementById("w_"+w).classList.add("active");
 }
+
+function spawnEnemy(){enemies.push({x:Math.random()*280+20,y:Math.random()*280+20})}
+for(let i=0;i<6;i++)spawnEnemy();
 
 function shoot(){
   if(weapon==="pistol"){bullets.push({x:160,y:160,vx:0,vy:-6});sfx(700)}
@@ -236,56 +170,72 @@ function shoot(){
   if(weapon==="sniper"){bullets.push({x:160,y:160,vx:0,vy:-9});sfx(900,0.1,"triangle")}
 }
 
+function drawSniper(ctx,w,h){
+  const g=ctx.createRadialGradient(w/2,h/2,60,w/2,h/2,w);
+  g.addColorStop(0,"rgba(0,0,0,0)");
+  g.addColorStop(1,"rgba(0,0,0,0.85)");
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle="#fff";ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(w/2,0);ctx.lineTo(w/2,h);
+  ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);
+  ctx.stroke();
+}
+
+function drawPistol(ctx,w,h){
+  ctx.strokeStyle="#fff";ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(w/2-16,h/2+10);ctx.lineTo(w/2-6,h/2+10);
+  ctx.moveTo(w/2+6,h/2+10);ctx.lineTo(w/2+16,h/2+10);
+  ctx.moveTo(w/2,h/2-6);ctx.lineTo(w/2,h/2+8);
+  ctx.stroke();
+}
+
+function drawShotgun(ctx,w,h){
+  const g=ctx.createRadialGradient(w/2,h/2,80,w/2,h/2,w);
+  g.addColorStop(0,"rgba(0,0,0,0)");
+  g.addColorStop(1,"rgba(0,0,0,0.6)");
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle="#fff";
+  ctx.beginPath();
+  ctx.arc(w/2,h/2,24,0,Math.PI*2);
+  ctx.stroke();
+}
+
 setInterval(()=>{
   ac.clearRect(0,0,320,320);
+
   bullets.forEach(b=>{b.x+=b.vx;b.y+=b.vy});
   bullets=bullets.filter(b=>b.y>-10);
+
   bullets.forEach(b=>{
     enemies=enemies.filter(e=>{
       if(Math.hypot(e.x-b.x,e.y-b.y)<14){
-        data.coins++;sfx(1000,0.08,"triangle");
-        save();update();return false;
+        data.coins++;sfx(1000,0.08,"triangle");save();update();
+        return false;
       }
       return true;
     });
   });
   while(enemies.length<6)spawnEnemy();
+
   ac.fillStyle="gray";
   enemies.forEach(e=>ac.fillRect(e.x-10,e.y-10,20,20));
+
+  if(weapon==="pistol")drawPistol(ac,320,320);
+  if(weapon==="shotgun")drawShotgun(ac,320,320);
+  if(weapon==="sniper")drawSniper(ac,320,320);
 },60);
 
-/* 🧪 RANGE */
+/* RANGE */
 let magCount=0,chambered=false;
 function loadMag(){magCount=7;chambered=false;sfx(300);update()}
 function rack(){if(magCount>0){chambered=true;sfx(500)}else sfx(150)}
 function fire(){
   if(!chambered){sfx(120);return;}
-  chambered=false;magCount--;data.coins++;
-  sfx(800);save();update();
+  chambered=false;magCount--;data.coins++;sfx(800);
+  save();update();
 }
-
-/* 😂 FAKE ADS */
-const ads=[
-  {t:"FREE ROBUX",d:"trust me bro",a:()=>alert("❌ Robux not found")},
-  {t:"AIM BOOST",d:"+300% placebo",a:()=>alert("You feel faster")},
-  {t:"REMOVE ADS",d:"1,000,000 coins",a:()=>alert("Ads removed (jk)")},
-  {t:"FREE COINS",d:"real definitely",a:()=>{data.coins+=5;save();update()}}
-];
-function showAd(){
-  const a=ads[Math.floor(Math.random()*ads.length)];
-  adTitle.textContent=a.t;
-  adText.textContent=a.d;
-  window.adAction=()=>{
-    fakeAd.classList.add("hidden");
-    sfx(200);a.a();
-  };
-  fakeAd.classList.remove("hidden");
-}
-setInterval(()=>{
-  if(Math.random()<0.3 && fakeAd.classList.contains("hidden")){
-    showAd();
-  }
-},25000);
 </script>
 
 </body>
